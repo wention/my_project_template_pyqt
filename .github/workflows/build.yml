@@ -1,0 +1,81 @@
+name: Package with PyInstaller
+
+on:
+  push:
+    branches:
+      - main      # 当 main 分支有推送时触发
+      - dev       # 当 dev 分支有推送时触发
+      - feat/*    # 匹配所有 feat/ 开头的分支，如 feat/new-ui
+  workflow_dispatch: # 保留手动触发，方便随时测试
+
+jobs:
+  build-windows:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            artifact: MyApp-dev-${{ steps.commit.outputs.hash }}-win.exe
+          - os: macos-latest
+            artifact: MyApp-dev-${{ steps.commit.outputs.hash }}-mac.tar.gz
+          - os: ubuntu-latest
+            artifact: MyApp-dev-${{ steps.commit.outputs.hash }}-linux.tar.gz
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+
+      - name: Build with PyInstaller
+        run: |
+          uv run pyinstaller --name "MyApp" --onefile --noconsole main.py
+
+      - name: Prepare artifact (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          Rename-Item -Path dist/MyApp.exe -NewName ${{ matrix.artifact }}
+          
+      - name: Prepare artifact (macOS/Linux)
+        if: runner.os != 'Windows'
+        run: |
+          cd dist
+          tar -czf ../${{ matrix.artifact }} MyApp.app 2>/dev/null || tar -czf ../${{ matrix.artifact }} MyApp
+          cd ..
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.artifact }}
+
+  release:
+    name: Update Dev Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+          merge-multiple: true
+
+      # 核心步骤：将产物上传到一个固定名称的 Pre-release
+      - name: Update Dev Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: dev-latest # 固定的 Tag 名称
+          name: "🚧 Latest Dev Build" # 固定的 Release 标题
+          prerelease: true # 标记为预发布版（Pre-release）
+          body: "这是最新的开发版构建，包含最近的代码提交。可能会存在不稳定的情况。"
+          files: artifacts/*

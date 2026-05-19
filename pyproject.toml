@@ -16,10 +16,6 @@ required-environments = [
     "sys_platform == 'win32' and platform_machine == 'AMD64'",
 ]
 
-[[tool.uv.index]]
-url = "https://mirrors.ustc.edu.cn/pypi/simple"
-default = true
-
 [dependency-groups]
 dev = [
     "pyinstaller>=6.20.0",
