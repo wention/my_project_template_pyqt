@@ -17,11 +17,13 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            artifact: MyApp-dev-win.exe
+            artifact: MyApp-dev-win_amd64.exe
           - os: macos-latest
-            artifact: MyApp-dev-mac.tar.gz
+            artifact: MyApp-dev-macos_arm64.tar.gz
           - os: ubuntu-latest
-            artifact: MyApp-dev-linux.tar.gz
+            artifact: MyApp-dev-linux_amd64.tar.gz
+          - os: ubuntu-24.04-arm
+            artifact: MyApp-dev-linux_arm64.tar.gz
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -42,7 +44,7 @@ jobs:
       - name: Prepare artifact (Windows)
         if: runner.os == 'Windows'
         run: |
-          Rename-Item -Path dist/MyApp.exe -NewName ${{ matrix.artifact }}
+          Rename-Item -Path dist\MyApp.exe -NewName ${{ matrix.artifact }}
           
       - name: Prepare artifact (macOS/Linux)
         if: runner.os != 'Windows'
