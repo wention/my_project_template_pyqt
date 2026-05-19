@@ -45,7 +45,7 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           ls dist
-          Move-Item -Path dist\MyApp.exe -NewName ${{ matrix.artifact }}
+          Move-Item -Path dist\MyApp.exe -Destination ${{ matrix.artifact }}
           
       - name: Prepare artifact (macOS/Linux)
         if: runner.os != 'Windows'
