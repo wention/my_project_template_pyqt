@@ -9,18 +9,19 @@ on:
   workflow_dispatch: # 保留手动触发，方便随时测试
 
 jobs:
-  build-windows:
+  build:
     name: Build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    strategy:
+    # 获取短 Commit Hash，用于文件命名
+   strategy:
       matrix:
         include:
           - os: windows-latest
-            artifact: MyApp-dev-${{ steps.commit.outputs.hash }}-win.exe
+            artifact: MyApp-dev-win.exe
           - os: macos-latest
-            artifact: MyApp-dev-${{ steps.commit.outputs.hash }}-mac.tar.gz
+            artifact: MyApp-dev-mac.tar.gz
           - os: ubuntu-latest
-            artifact: MyApp-dev-${{ steps.commit.outputs.hash }}-linux.tar.gz
+            artifact: MyApp-dev-linux.tar.gz
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
