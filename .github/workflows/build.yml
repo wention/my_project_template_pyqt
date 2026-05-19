@@ -13,7 +13,7 @@ jobs:
     name: Build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     # 获取短 Commit Hash，用于文件命名
-   strategy:
+    strategy:
       matrix:
         include:
           - os: windows-latest
